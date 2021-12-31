@@ -31,25 +31,6 @@ __MODULE__ = "Repo"
 __HELP__ = "/repo - To Get My Github Repository Link " "And Support Group Link"
 
 
-@app.on_message(filters.command("repo") & ~filters.edited)
-@capture_err
-async def repo(_, message):
-    users = await get(
-        "https://api.github.com/repos/thehamkercat/williambutcherbot/contributors"
-    )
-    list_of_users = ""
-    count = 1
-    for user in users:
-        list_of_users += (
-            f"**{count}.** [{user['login']}]({user['html_url']})\n"
-        )
-        count += 1
-
-    text = f"""[Github](https://github.com/thehamkercat/WilliamButcherBot) | [Group](t.me/PatheticProgrammers)
-```----------------
-| Contributors |
-----------------```
-{list_of_users}"""
-    await app.send_message(
-        message.chat.id, text=text, disable_web_page_preview=True
-    )
+@app.on_message(filters.command("repo"))
+async def roll(_, message):
+    await message.reply_text('https://youtu.be/oWnzLvlywlY',disable_web_page_preview)
