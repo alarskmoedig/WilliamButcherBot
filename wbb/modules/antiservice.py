@@ -5,8 +5,11 @@ from pyrogram import filters
 
 from wbb import app
 from wbb.core.decorators.permissions import adminsOnly
-from wbb.utils.dbfunctions import (antiservice_off, antiservice_on,
-                                   is_antiservice_on)
+from wbb.utils.dbfunctions import (
+    antiservice_off,
+    antiservice_on,
+    is_antiservice_on,
+)
 
 __MODULE__ = "AntiService"
 __HELP__ = """
@@ -16,7 +19,11 @@ Plugin to delete service messages in a chat!
 """
 
 
-@app.on_message(filters.command("antiservice") & ~filters.private)
+@app.on_message(
+    filters.command("antiservice")
+    & ~filters.private
+    & ~filters.edited
+)
 @adminsOnly("can_change_info")
 async def anti_service(_, message):
     if len(message.command) != 2:

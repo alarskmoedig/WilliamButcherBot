@@ -2,12 +2,20 @@ from asyncio import get_event_loop, sleep
 
 from feedparser import parse
 from pyrogram import filters
+from pyrogram.errors import (
+    ChannelInvalid, ChannelPrivate, InputUserDeactivated
+)
 from pyrogram.types import Message
 
-from wbb import RSS_DELAY, app
+from wbb import RSS_DELAY, app, log
 from wbb.core.decorators.errors import capture_err
-from wbb.utils.dbfunctions import (add_rss_feed, get_rss_feeds, is_rss_active,
-                                   remove_rss_feed, update_rss_feed)
+from wbb.utils.dbfunctions import (
+    add_rss_feed,
+    get_rss_feeds,
+    is_rss_active,
+    remove_rss_feed,
+    update_rss_feed,
+)
 from wbb.utils.functions import get_http_status_code, get_urls_from_text
 from wbb.utils.rss import Feed
 
@@ -17,14 +25,14 @@ __HELP__ = f"""
 /rm_feed - Remove feed from chat
 
 **Note:**
-    - This will check for updates every {RSS_DELAY//60} minutes.
+    - This will check for updates every {RSS_DELAY // 60} minutes.
     - You can only add one feed per chat.
     - Currently RSS and ATOM feeds are supported.
 """
 
 
 async def rss_worker():
-    print("[INFO]: RSS WORKER STARTED")
+    log.info("RSS Worker started")
     while True:
         feeds = await get_rss_feeds()
         if not feeds:
@@ -34,8 +42,8 @@ async def rss_worker():
         loop = get_event_loop()
 
         for _feed in feeds:
+            chat = _feed["chat_id"]
             try:
-                chat = _feed["chat_id"]
                 url = _feed["url"]
                 last_title = _feed.get("last_title")
 
@@ -49,8 +57,11 @@ async def rss_worker():
                     chat, feed.parsed(), disable_web_page_preview=True
                 )
                 await update_rss_feed(chat, feed.title)
+            except (ChannelInvalid, ChannelPrivate, InputUserDeactivated):
+                await remove_rss_feed(chat)
+                log.info(f"Removed RSS Feed from {chat} (Invalid Chat)")
             except Exception as e:
-                print(str(e), f"RSS {chat}")
+                log.info(f"RSS in {chat}: {str(e)}")
                 pass
         await sleep(RSS_DELAY)
 
@@ -59,7 +70,7 @@ loop = get_event_loop()
 loop.create_task(rss_worker())
 
 
-@app.on_message(filters.command("add_feed"))
+@app.on_message(filters.command("add_feed") & ~filters.edited)
 @capture_err
 async def add_feed_func(_, m: Message):
     if len(m.command) != 2:
@@ -95,10 +106,10 @@ async def add_feed_func(_, m: Message):
         await m.reply(feed.parsed(), disable_web_page_preview=True)
     except Exception:
         return await m.reply(ns)
-    await add_rss_feed(chat_id, feed.url, feed.title)
+    await add_rss_feed(chat_id, parsed.url, feed.title)
 
 
-@app.on_message(filters.command("rm_feed"))
+@app.on_message(filters.command("rm_feed") & ~filters.edited)
 async def rm_feed_func(_, m: Message):
     if await is_rss_active(m.chat.id):
         await remove_rss_feed(m.chat.id)

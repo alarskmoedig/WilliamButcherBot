@@ -25,9 +25,13 @@ from asyncio import get_running_loop, sleep
 from time import time
 
 from pyrogram import filters
-from pyrogram.types import (CallbackQuery, ChatPermissions,
-                            InlineKeyboardButton, InlineKeyboardMarkup,
-                            Message)
+from pyrogram.types import (
+    CallbackQuery,
+    ChatPermissions,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
 
 from wbb import SUDOERS, app
 from wbb.core.decorators.errors import capture_err
@@ -42,7 +46,6 @@ Anti-Flood system, the one who sends more than 10 messages in a row, gets muted 
 
 /flood [ENABLE|DISABLE] - Turn flood detection on or off
 """
-
 
 DB = {}  # TODO Use mongodb instead of a fucking dict.
 
@@ -87,8 +90,8 @@ async def flood_control_func(_, message: Message):
     reset_flood(chat_id, user_id)
 
     # Ignore devs and admins
-    mods = (await list_admins(chat_id)) + SUDOERS
-    if user_id in mods:
+    mods = await list_admins(chat_id)
+    if user_id in mods or user_id in SUDOERS:
         return
 
     # Mute if user sends more than 10 messages in a row
@@ -148,7 +151,7 @@ async def flood_callback_func(_, cq: CallbackQuery):
     await cq.message.edit(text)
 
 
-@app.on_message(filters.command("flood") & ~filters.private)
+@app.on_message(filters.command("flood") & ~filters.private & ~filters.edited)
 @adminsOnly("can_change_info")
 async def flood_toggle(_, message: Message):
     if len(message.command) != 2:

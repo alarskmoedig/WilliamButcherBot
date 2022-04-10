@@ -1,3 +1,4 @@
+mirror.py
 dump
 *.m4a
 *.apk
@@ -154,3 +155,4 @@ neofetch.txt
 error.log
 permissions.json
 .vscode
+.idea

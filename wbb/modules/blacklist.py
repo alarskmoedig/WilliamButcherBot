@@ -31,9 +31,11 @@ from wbb import SUDOERS, app
 from wbb.core.decorators.errors import capture_err
 from wbb.core.decorators.permissions import adminsOnly
 from wbb.modules.admin import list_admins
-from wbb.utils.dbfunctions import (delete_blacklist_filter,
-                                   get_blacklisted_words,
-                                   save_blacklist_filter)
+from wbb.utils.dbfunctions import (
+    delete_blacklist_filter,
+    get_blacklisted_words,
+    save_blacklist_filter,
+)
 from wbb.utils.filter_groups import blacklist_filters_group
 
 __MODULE__ = "Blacklist"
@@ -93,7 +95,10 @@ async def del_filter(_, message):
     await message.reply_text("**No such blacklist filter.**")
 
 
-@app.on_message(filters.text & ~filters.private, group=blacklist_filters_group)
+@app.on_message(
+    filters.text
+    & ~filters.private
+    & ~filters.edited, group=blacklist_filters_group)
 @capture_err
 async def blacklist_filters_re(_, message):
     text = message.text.lower().strip()
@@ -115,7 +120,7 @@ async def blacklist_filters_re(_, message):
                 await message.chat.restrict_member(
                     user.id,
                     ChatPermissions(),
-                    until_date=(time() + 3600),
+                    until_date=int(time() + 3600),
                 )
             except Exception:
                 return

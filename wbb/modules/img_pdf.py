@@ -36,10 +36,10 @@ from wbb.core.sections import section
 
 
 async def convert(
-    main_message: Message,
-    reply_messages,
-    status_message: Message,
-    start_time: float,
+        main_message: Message,
+        reply_messages,
+        status_message: Message,
+        start_time: float,
 ):
     m = status_message
 
@@ -64,7 +64,11 @@ async def convert(
     pdf.name = "wbb.pdf"
 
     if len(main_message.command) >= 2:
-        pdf.name = main_message.text.split(None, 1)[1]
+        names = main_message.text.split(None, 1)[1]
+        if not names.endswith(".pdf"):
+            pdf.name = names + ".pdf"
+        else:
+            pdf.name = names
 
     elapsed = round(time() - start_time, 2)
 
@@ -74,7 +78,7 @@ async def convert(
             "IMG2PDF",
             body={
                 "Title": pdf.name,
-                "Size": f"{pdf.__sizeof__() / (10**6)}MB",
+                "Size": f"{pdf.__sizeof__() / (10 ** 6)}MB",
                 "Pages": len(documents),
                 "Took": f"{elapsed}s",
             },
@@ -88,7 +92,7 @@ async def convert(
             remove(file)
 
 
-@app.on_message(filters.command("pdf"))
+@app.on_message(filters.command("pdf") & ~filters.edited)
 @capture_err
 async def img_to_pdf(_, message: Message):
     reply = message.reply_to_message

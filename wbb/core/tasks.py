@@ -17,12 +17,11 @@ def all_tasks():
 
 
 async def add_task(
-    taskFunc,
-    task_name,
-    *args,
-    **kwargs,
+        taskFunc,
+        task_name,
+        *args,
+        **kwargs,
 ):
-
     async with TASKS_LOCK:
         global tasks
 
@@ -83,7 +82,7 @@ async def _get_tasks_text():
 
 
 @app2.on_message(
-    filters.user(SUDOERS)
+    SUDOERS
     & ~filters.forwarded
     & ~filters.via_bot
     & filters.command("lsTasks", prefixes=USERBOT_PREFIX)

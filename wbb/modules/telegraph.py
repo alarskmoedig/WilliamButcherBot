@@ -8,7 +8,7 @@ __MODULE__ = "Telegraph"
 __HELP__ = "/telegraph [Page name]: Paste styled text on telegraph."
 
 
-@app.on_message(filters.command("telegraph"))
+@app.on_message(filters.command("telegraph") & ~filters.edited)
 @capture_err
 async def paste(_, message: Message):
     reply = message.reply_to_message
@@ -21,7 +21,7 @@ async def paste(_, message: Message):
 
     page_name = message.text.split(None, 1)[1]
     page = telegraph.create_page(
-        page_name, html_content=(reply.text.html).replace("\n", "<br>")
+        page_name, html_content=reply.text.html.replace("\n", "<br>")
     )
     return await message.reply(
         f"**Posted:** {page['url']}",

@@ -44,10 +44,8 @@ async def get_soup(url: str, headers):
     return BeautifulSoup(html, "html.parser")
 
 
-@app2.on_message(
-    filters.command("reverse", prefixes=USERBOT_PREFIX) & filters.user(SUDOERS)
-)
-@app.on_message(filters.command("reverse"))
+@app2.on_message(filters.command("reverse", prefixes=USERBOT_PREFIX) & SUDOERS)
+@app.on_message(filters.command("reverse") & ~filters.edited)
 @capture_err
 async def reverse_image_search(client, message: Message):
     if not message.reply_to_message:
@@ -56,11 +54,11 @@ async def reverse_image_search(client, message: Message):
         )
     reply = message.reply_to_message
     if (
-        not reply.document
-        and not reply.photo
-        and not reply.sticker
-        and not reply.animation
-        and not reply.video
+            not reply.document
+            and not reply.photo
+            and not reply.sticker
+            and not reply.animation
+            and not reply.video
     ):
         return await eor(
             message,

@@ -64,10 +64,8 @@ def isArgInt(message: Message) -> list:
         return [False, 0]
 
 
-@app2.on_message(
-    filters.command("q", prefixes=USERBOT_PREFIX) & filters.user(SUDOERS)
-)
-@app.on_message(filters.command("q") & ~filters.private)
+@app2.on_message(filters.command("q", prefixes=USERBOT_PREFIX) & SUDOERS)
+@app.on_message(filters.command("q") & ~filters.private & ~filters.edited)
 @capture_err
 async def quotly_func(client, message: Message):
     if not message.reply_to_message:

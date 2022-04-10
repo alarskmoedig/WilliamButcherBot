@@ -53,10 +53,10 @@ def generate_captcha():
         return chr(randint(65, 90))
 
     def rndColor():
-        return (randint(64, 255), randint(64, 255), randint(64, 255))
+        return randint(64, 255), randint(64, 255), randint(64, 255)
 
     def rndColor2():
-        return (randint(32, 127), randint(32, 127), randint(32, 127))
+        return randint(32, 127), randint(32, 127), randint(32, 127)
 
     # Generate a 4 letter word
     def gen_wrong_answer():
@@ -216,9 +216,9 @@ async def extract_user_and_reason(message, sender_chat=False):
         # if reply to a message and no reason is given
         if not reply.from_user:
             if (
-                reply.sender_chat
-                and reply.sender_chat != message.chat.id
-                and sender_chat
+                    reply.sender_chat
+                    and reply.sender_chat != message.chat.id
+                    and sender_chat
             ):
                 id_ = reply.sender_chat.id
             else:
@@ -250,9 +250,9 @@ async def extract_user(message):
 
 
 def get_file_id_from_message(
-    message,
-    max_file_size=3145728,
-    mime_types=["image/png", "image/jpeg"],
+        message,
+        max_file_size=3145728,
+        mime_types=["image/png", "image/jpeg"],
 ):
     file_id = None
     if message.document:

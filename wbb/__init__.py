@@ -1,4 +1,3 @@
-# flake8: noqa F405
 """
 MIT License
 
@@ -29,7 +28,7 @@ from os import path
 
 from aiohttp import ClientSession
 from motor.motor_asyncio import AsyncIOMotorClient as MongoClient
-from pyrogram import Client
+from pyrogram import Client, filters
 from pyrogram.types import Message
 from pyromod import listen
 from Python_ARQ import ARQ
@@ -44,27 +43,49 @@ else:
 
 USERBOT_PREFIX = USERBOT_PREFIX
 GBAN_LOG_GROUP_ID = GBAN_LOG_GROUP_ID
-SUDOERS = SUDO_USERS_ID
 WELCOME_DELAY_KICK_SEC = WELCOME_DELAY_KICK_SEC
 LOG_GROUP_ID = LOG_GROUP_ID
 MESSAGE_DUMP_CHAT = MESSAGE_DUMP_CHAT
 MOD_LOAD = []
 MOD_NOLOAD = []
+SUDOERS = filters.user()
 bot_start_time = time.time()
 
+
+class Log:
+    def __init__(self, save_to_file=False, file_name="wbb.log"):
+        self.save_to_file = save_to_file
+        self.file_name = file_name
+
+    def info(self, msg):
+        print(f"[+]: {msg}")
+        if self.save_to_file:
+            with open(self.file_name, "a") as f:
+                f.write(f"[INFO]({time.ctime(time.time())}): {msg}\n")
+
+    def error(self, msg):
+        print(f"[-]: {msg}")
+        if self.save_to_file:
+            with open(self.file_name, "a") as f:
+                f.write(f"[ERROR]({time.ctime(time.time())}): {msg}\n")
+
+
+log = Log(True, "bot.log")
+
 # MongoDB client
-print("[INFO]: INITIALIZING DATABASE")
+log.info("Initializing MongoDB client")
 mongo_client = MongoClient(MONGO_URL)
 db = mongo_client.wbb
 
 
 async def load_sudoers():
     global SUDOERS
-    print("[INFO]: LOADING SUDOERS")
+    log.info("Loading sudoers")
     sudoersdb = db.sudoers
     sudoers = await sudoersdb.find_one({"sudo": "sudo"})
     sudoers = [] if not sudoers else sudoers["sudoers"]
-    for user_id in SUDOERS:
+    for user_id in SUDO_USERS_ID:
+        SUDOERS.add(user_id)
         if user_id not in sudoers:
             sudoers.append(user_id)
             await sudoersdb.update_one(
@@ -72,8 +93,9 @@ async def load_sudoers():
                 {"$set": {"sudoers": sudoers}},
                 upsert=True,
             )
-    SUDOERS = (SUDOERS + sudoers) if sudoers else SUDOERS
-    print("[INFO]: LOADED SUDOERS")
+    if sudoers:
+        for user_id in sudoers:
+            SUDOERS.add(user_id)
 
 
 loop = asyncio.get_event_loop()
@@ -95,12 +117,12 @@ arq = ARQ(ARQ_API_URL, ARQ_API_KEY, aiohttpsession)
 
 app = Client("wbb", bot_token=BOT_TOKEN, api_id=API_ID, api_hash=API_HASH)
 
-print("[INFO]: STARTING BOT CLIENT")
+log.info("Starting bot client")
 app.start()
-print("[INFO]: STARTING USERBOT CLIENT")
+log.info("Starting userbot client")
 app2.start()
 
-print("[INFO]: GATHERING PROFILE INFO")
+log.info("Gathering profile info")
 x = app.get_me()
 y = app2.get_me()
 
@@ -117,8 +139,9 @@ USERBOT_MENTION = y.mention
 USERBOT_DC_ID = y.dc_id
 
 if USERBOT_ID not in SUDOERS:
-    SUDOERS.append(USERBOT_ID)
+    SUDOERS.add(USERBOT_ID)
 
+log.info("Initializing Telegraph client")
 telegraph = Telegraph()
 telegraph.create_account(short_name=BOT_USERNAME)
 
